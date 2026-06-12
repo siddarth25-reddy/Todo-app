@@ -3,13 +3,15 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Priority Todo App API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: tasks
+    description: Task operations
 paths:
   /healthz:
     get:
@@ -24,6 +26,152 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /tasks:
+    get:
+      operationId: listTasks
+      tags: [tasks]
+      summary: List all tasks
+      parameters:
+        - name: priority
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [high, medium, low]
+        - name: completed
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: ["true", "false"]
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Task"
+    post:
+      operationId: createTask
+      tags: [tasks]
+      summary: Create a new task
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TaskInput"
+      responses:
+        "201":
+          description: Created task
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+
+  /tasks/summary:
+    get:
+      operationId: getTaskSummary
+      tags: [tasks]
+      summary: Get task summary statistics
+      responses:
+        "200":
+          description: Task summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskSummary"
+
+  /tasks/{id}:
+    get:
+      operationId: getTask
+      tags: [tasks]
+      summary: Get a task by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Task found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "404":
+          description: Task not found
+    patch:
+      operationId: updateTask
+      tags: [tasks]
+      summary: Update a task
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TaskUpdate"
+      responses:
+        "200":
+          description: Updated task
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "404":
+          description: Task not found
+    delete:
+      operationId: deleteTask
+      tags: [tasks]
+      summary: Delete a task
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Task deleted
+        "404":
+          description: Task not found
+
+  /tasks/{id}/complete:
+    patch:
+      operationId: toggleTaskComplete
+      tags: [tasks]
+      summary: Toggle task completion status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated task
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "404":
+          description: Task not found
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +182,88 @@ components:
       required:
         - status
 
+    Task:
+      type: object
+      required:
+        - id
+        - title
+        - priority
+        - completed
+        - createdAt
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: ["string", "null"]
+        priority:
+          type: string
+          enum: [high, medium, low]
+        completed:
+          type: boolean
+        dueDate:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    TaskInput:
+      type: object
+      required:
+        - title
+        - priority
+      properties:
+        title:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        priority:
+          type: string
+          enum: [high, medium, low]
+        dueDate:
+          type: string
+
+    TaskUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        priority:
+          type: string
+          enum: [high, medium, low]
+        dueDate:
+          type: ["string", "null"]
+        completed:
+          type: boolean
+
+    TaskSummary:
+      type: object
+      required:
+        - total
+        - completed
+        - pending
+        - highPriority
+        - mediumPriority
+        - lowPriority
+        - overdueCount
+      properties:
+        total:
+          type: integer
+        completed:
+          type: integer
+        pending:
+          type: integer
+        highPriority:
+          type: integer
+        mediumPriority:
+          type: integer
+        lowPriority:
+          type: integer
+        overdueCount:
+          type: integer
