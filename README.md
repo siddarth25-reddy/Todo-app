@@ -17,12 +17,6 @@ A simple and responsive Todo Application built to help users organize and manage
 - CSS3
 - JavaScript (ES6)
 
-## 📸 Preview
-
-Add screenshots here:
-
-![Todo App Screenshot](./assets/screenshot.png)
-
 ## 📂 Project Structure
 
 ```bash
